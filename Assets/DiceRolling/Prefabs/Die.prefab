@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6588589161453071835}
   - component: {fileID: 6588589161453071834}
   - component: {fileID: 6588589161453071838}
+  - component: {fileID: 809911208739790372}
   m_Layer: 0
   m_Name: Die
   m_TagString: Untagged
@@ -107,7 +108,7 @@ MeshCollider:
   m_GameObject: {fileID: 2739959322414651595}
   m_Material: {fileID: 13400000, guid: 4bcebb653b5661f4bb0b3e4fcd4a9e96, type: 2}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Convex: 1
   m_CookingOptions: 14
@@ -124,3 +125,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 254ea7ec0380c164493df6368788e266, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rigidBody: {fileID: 0}
+  rolled: 0
+  landed: 0
+  gameManager: {fileID: 0}
+--- !u!65 &809911208739790372
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2739959322414651595}
+  m_Material: {fileID: 13400000, guid: 4bcebb653b5661f4bb0b3e4fcd4a9e96, type: 2}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 0.99999994, z: 1}
+  m_Center: {x: -0.013922945, y: -0.03990516, z: 0.02326496}

@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class Dice : MonoBehaviour
 {
-    Rigidbody rigidBody;
+    public Rigidbody rigidBody;
     Vector3 originalPosition;
-    bool rolled = false;
-    bool landed = false;
+    public bool rolled = false;
+    public bool landed = false;
+
+    public GameManager gameManager;
     
     void Start()
     {
@@ -22,9 +24,9 @@ public class Dice : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Space))
         {
             if (!rolled && !landed)
-                RollDice();
+                RollDie();
             else
-                ResetDice();
+                ResetDie();
         }
         if (Input.GetKeyUp(KeyCode.R))
             Debug.Log(getDieValue());
@@ -37,14 +39,14 @@ public class Dice : MonoBehaviour
         }
     }
 
-    public void RollDice()
+    public void RollDie()
     {
         rolled = true;
         rigidBody.useGravity = true;
         rigidBody.AddTorque(Random.Range(0, 700), Random.Range(0, 700), Random.Range(0, 700));
     }
 
-    public void ResetDice()
+    public void ResetDie()
     {
         rolled = false;
         landed = false;
