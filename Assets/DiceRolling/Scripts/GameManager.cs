@@ -1,14 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     public Dice dieOne;
     public Dice dieTwo;
-
-    public List<int> playerRoundScores;
-    public List<int> botRoundScores;
+    public int totalRounds = 11;
 
     [Range(1, 100)]
     public int BotChoosingRerollChancePercentage = 50;
@@ -16,15 +16,15 @@ public class GameManager : MonoBehaviour
     int dieOneValue = 0;
     int dieTwoValue = 0;
 
+    int playerRoundScore;
+    int botRoundScore;
+
     bool playerDoubleOdd = false;
     bool botDoubleEven = false;
 
     int currentRound = 1;
     int playerWonRounds = 0;
     int botWonRounds = 0;
-
-    int playerpoints = 0;
-    int botPoints = 0;
 
     int remainingPlayerRerolls = 3;
     int remainingBotRerolls = 3;
@@ -38,14 +38,23 @@ public class GameManager : MonoBehaviour
     bool playerChoseReroll = false;
     bool botChoseReroll = false;
 
+    public Text playerScoreText;
+    public Text botScoreText;
+    public Text currenPlayTurnText;
+    public Text currentRoundText;
+    public Text rollValueText;
+    public Button rollButton;
+    public Text gameOverText;
+    public GameObject rerollPanel;
+    public GameObject gameOverPanel;
+    public GameObject exitPanel;
+
+
     // Start is called before the first frame update
     void Start()
     {
-        playerRoundScores = new List<int>();
-        botRoundScores = new List<int>();
-
-        playerTurn = true;
-        PromptPlayerToRoll();
+        SetPlayerTurn();
+        currentRoundText.text = currentRound.ToString();
     }
 
     // Update is called once per frame
@@ -60,14 +69,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void PromptPlayerToRoll()
+    public void RollDice()
     {
-        Debug.Log("You Can Roll");
-
-    }
-
-    void RollDice()
-    {
+        rollValueText.text = "";
         dieOne.RollDie();
         dieTwo.RollDie();
     }
@@ -77,17 +81,39 @@ public class GameManager : MonoBehaviour
         dieOne.ResetDie();
         dieTwo.ResetDie();
         diceRolled = false;
+        rollValueText.text = "";
+    }
+
+    void SetPlayerTurn()
+    {
+        playerTurn = true;
+        rollButton.interactable = true;
+        if (playerChoseReroll)
+            currenPlayTurnText.text = "Player's Reroll Round!";
+        else
+            currenPlayTurnText.text = "Player's Turn!";
+    }
+
+    void SetBotTurn()
+    {
+        playerTurn = false;
+        rollButton.interactable = false;
+        if (botChoseReroll)
+            currenPlayTurnText.text = "Bot's Reroll Round!";
+        else
+            currenPlayTurnText.text = "Bot's Turn!";
     }
 
     public void UpdateRoundScore(int value1, int value2)
     {
+        rollValueText.text = value1 + " + " + value2 + " = " + (value1 + value2);
         if (!rerollRound) //normal round
         {
             if (playerTurn)
             {
                 CalculatePlayerScore(value1, value2);
 
-                playerTurn = false;
+                SetBotTurn();
                 Invoke("ResetDice", 3);
                 Invoke("RollDice", 3.5f);
             }
@@ -95,21 +121,17 @@ public class GameManager : MonoBehaviour
             {
                 CalculateBotScore(value1, value2);
 
-                playerTurn = true;
                 Invoke("ResetDice", 3);
                 Invoke("AskForReroll", 3.5f);
             }
         }
         else
         {
-            playerDoubleOdd = false;
-            botDoubleEven = false;
-
             if (playerTurn)
             {
                 CalculatePlayerScoreReroll(value1, value2);
 
-                playerTurn = false;
+                SetBotTurn();
                 Invoke("ResetDice", 3);
                 if (botChoseReroll)
                     Invoke("RollDice", 3.5f);
@@ -120,12 +142,9 @@ public class GameManager : MonoBehaviour
             {
                 CalculateBotScoreReroll(value1, value2);
 
-                playerTurn = true;
                 Invoke("ResetDice", 3);
                 Invoke("FinalizeRound", 3.5f);
             }
-            playerChoseReroll = false;
-            botChoseReroll = false;
         }
     }
 
@@ -134,23 +153,23 @@ public class GameManager : MonoBehaviour
         playerOrigianlRoundScore = value1 + value2;
         if (value1 == value2)
         {
-            playerRoundScores.Add(0);
+            playerRoundScore = 0;
             if (value1 % 2 == 1)
                 playerDoubleOdd = true;
             else
                 playerDoubleOdd = false;
         }
         else
-            playerRoundScores.Add(value1 + value2);
+            playerRoundScore = value1 + value2;
     }
 
     void CalculatePlayerScoreReroll(int value1, int value2)
     {
         playerOrigianlRoundScore = value1 + value2;
         if (value1 == value2)
-            playerRoundScores[currentRound - 1] = 0;
+            playerRoundScore = 0;
         else
-            playerRoundScores[currentRound - 1] = value1 + value2;
+            playerRoundScore = value1 + value2;
     }
 
     void CalculateBotScore(int value1, int value2)
@@ -158,30 +177,30 @@ public class GameManager : MonoBehaviour
         botOriginalRoundScore = value1 + value2;
         if (value1 == value2)
         {
-            botRoundScores.Add(0);
+            botRoundScore = 0;
             if (value1 % 2 == 0)
                 botDoubleEven = true;
             else
                 botDoubleEven = false;
         }
         else
-            botRoundScores.Add(value1 + value2);
+            botRoundScore = value1 + value2;
     }
 
     void CalculateBotScoreReroll(int value1, int value2)
     {
         botOriginalRoundScore = value1 + value2;
         if (value1 == value2)
-            botRoundScores[currentRound - 1] = 0;
+            botRoundScore = 0;
         else
-            botRoundScores[currentRound - 1] = value1 + value2;
+            botRoundScore = value1 + value2;
     }
 
     void AskForReroll()
     {
         //bot reroll decision making
         if (remainingBotRerolls > 0
-            && botRoundScores[currentRound - 1] < playerRoundScores[currentRound - 1]
+            && botRoundScore < playerRoundScore
             && Random.Range(BotChoosingRerollChancePercentage, 101) == 100
             && !botDoubleEven)
             botChoseReroll = true;
@@ -196,9 +215,16 @@ public class GameManager : MonoBehaviour
 
     private void ShowRerollDialogue()
     {
-        Debug.Log("Reroll??");
+        rerollPanel.SetActive(true);
+    }
+
+    public void RerollConfirmation(bool playerWillReroll)
+    {
+        playerChoseReroll = playerWillReroll;
+        rerollPanel.SetActive(false);
         StartRerollRound();
     }
+
     private void StartRerollRound()
     {
         if (playerChoseReroll || botChoseReroll)
@@ -214,46 +240,98 @@ public class GameManager : MonoBehaviour
         if(playerChoseReroll)
         {
             remainingPlayerRerolls--;
-            playerTurn = true;
-            PromptPlayerToRoll();
+            SetPlayerTurn();
+            //PromptPlayerToRoll();
         }
         else if(botChoseReroll)
         {
             remainingBotRerolls--;
-            playerTurn = false;
+            SetBotTurn();
             RollDice();
         }
     }
     void FinalizeRound()
     {
+        playerDoubleOdd = false;
+        botDoubleEven = false;
+        playerChoseReroll = false;
+        botChoseReroll = false;
         rerollRound = false;
 
-        if (playerRoundScores[currentRound - 1] > botRoundScores[currentRound - 1])
-            playerWonRounds++;
-        else if (botRoundScores[currentRound - 1] > playerRoundScores[currentRound - 1])
-            botWonRounds++;
+        if (playerRoundScore > botRoundScore)
+        {
+            PlayerWon();
+            
+        }
+        else if (botRoundScore > playerRoundScore)
+        {
+            BotWon();
+
+
+        }
         else // draw
         {
             if (playerOrigianlRoundScore % 2 == 0)
-                playerWonRounds++;
+                PlayerWon();
             else
-                botWonRounds++;
+                BotWon();
         }
 
-        if (playerWonRounds == 6)
+        if (playerWonRounds == (totalRounds / 2) + 1)
             FinalizeGame(true);
-        else if (botWonRounds == 6)
+        else if (botWonRounds == (totalRounds / 2) + 1)
             FinalizeGame(false);
         else
         {
             currentRound++;
-            PromptPlayerToRoll();
+            currentRoundText.text = currentRound.ToString();
+            SetPlayerTurn();
         }
             
     }
 
+    void PlayerWon()
+    {
+        playerWonRounds++;
+        playerScoreText.text = playerWonRounds.ToString();
+        rollValueText.text = "Player Won This Round!";
+    }
+
+    void BotWon()
+    {
+        botWonRounds++;
+        botScoreText.text = botWonRounds.ToString();
+        rollValueText.text = "Bot Won This Round!";
+    }
+
+    public void ReturnToMainMenu()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    public void OpenExitPanel()
+    {
+        exitPanel.SetActive(true);
+    }
+
+    public void CloseExitPanel()
+    {
+        exitPanel.SetActive(false);
+    }
     void FinalizeGame(bool playerWon)
     {
-        //throw new NotImplementedException();
+        gameOverPanel.SetActive(true);
+        if (playerWon)
+        {
+            gameOverText.text = "You Won!";
+            int playerGamesWon = PlayerPrefs.GetInt("PlayerGamesWon", 0);
+            PlayerPrefs.SetInt("PlayerGamesWon", ++playerGamesWon);
+        }
+        else
+        {
+            gameOverText.text = "You Lost!";
+            int botGamesWon = PlayerPrefs.GetInt("BotGamesWon", 0);
+            PlayerPrefs.SetInt("BotGamesWon", ++botGamesWon);
+        }
     }
 }
