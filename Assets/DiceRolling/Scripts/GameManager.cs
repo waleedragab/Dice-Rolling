@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        SetPlayerTurn();
+        SetTurn(true);
         uiManager.SetCurrentRoundText(currentRound.ToString());
     }
 
@@ -99,63 +99,60 @@ public class GameManager : MonoBehaviour
         uiManager.SetRollValueText("");
     }
 
-    void SetPlayerTurn()
+    void SetTurn(bool player)
     {
-        playerTurn = true;
-        uiManager.rollButton.interactable = true;
-        if (playerChoseReroll)
-            uiManager.SetCurrentPlayTurnText("Player's Reroll Round!");
+        playerTurn = player;
+        uiManager.rollButton.interactable = player;
+        if (player)
+        {
+            if (playerChoseReroll)
+                uiManager.SetCurrentPlayTurnText("Player's Reroll Round!");
+            else
+                uiManager.SetCurrentPlayTurnText("Player's Turn!");
+        }
         else
-            uiManager.SetCurrentPlayTurnText("Player's Turn!");
-    }
-
-    void SetBotTurn()
-    {
-        playerTurn = false;
-        uiManager.rollButton.interactable = false;
-        if (playerChoseReroll)
-            uiManager.SetCurrentPlayTurnText("Bot's Reroll Round!");
-        else
-            uiManager.SetCurrentPlayTurnText("Bot's Turn!");
+        {
+            if (botChoseReroll)
+                uiManager.SetCurrentPlayTurnText("Bot's Reroll Round!");
+            else
+                uiManager.SetCurrentPlayTurnText("Bot's Turn!");
+        }
+        
     }
 
     public void UpdateRoundScore(int value1, int value2)
     {
         uiManager.SetRollValueText(value1 + " + " + value2 + " = " + (value1 + value2));
-        if (!rerollRound) //normal round
+
+        if (playerTurn)
         {
-            if (playerTurn)
+            CalculateRollScore(value1, value2, true);
+            SetTurn(false);
+            Invoke("ResetDice", 3);
+            if (!rerollRound)
             {
-                CalculateRollScore(value1, value2, true);
                 CheckDoubleOdd(value1, value2);
-                SetBotTurn();
-                Invoke("ResetDice", 3);
                 Invoke("RollDice", 3.5f);
             }
-            else //bot turn
+            else
             {
-                CalculateRollScore(value1, value2, false);
-                CheckDoubleEven(value1, value2);
-                Invoke("ResetDice", 3);
-                Invoke("AskForReroll", 3.5f);
-            }
-        }
-        else
-        {
-            if (playerTurn)
-            {
-                CalculateRollScore(value1, value2, true);
-                SetBotTurn();
-                Invoke("ResetDice", 3);
                 if (botChoseReroll)
                     Invoke("RollDice", 3.5f);
                 else
                     Invoke("FinalizeRound", 3.5f);
             }
-            else //bot turn
+        }
+        else //bot turn
+        {
+            CalculateRollScore(value1, value2, false);
+            Invoke("ResetDice", 3);
+            if (!rerollRound)
             {
-                CalculateRollScore(value1, value2, false);
-                Invoke("ResetDice", 3);
+                CheckDoubleEven(value1, value2);
+                Invoke("AskForReroll", 3.5f);
+            }
+            else
+            {
                 Invoke("FinalizeRound", 3.5f);
             }
         }
@@ -202,13 +199,12 @@ public class GameManager : MonoBehaviour
             && !botDoubleEven)
             botChoseReroll = true;
 
+        //player reroll
         if (remainingPlayerRerolls > 0 && !playerDoubleOdd)
             ShowRerollDialogue();
         else
             StartRerollRound();
     }
-
-    
 
     private void ShowRerollDialogue()
     {
@@ -235,15 +231,16 @@ public class GameManager : MonoBehaviour
         if(playerChoseReroll)
         {
             remainingPlayerRerolls--;
-            SetPlayerTurn();
+            SetTurn(true);
         }
         else if(botChoseReroll)
         {
             remainingBotRerolls--;
-            SetBotTurn();
+            SetTurn(false);
             RollDice();
         }
     }
+
     void FinalizeRound()
     {
         playerDoubleOdd = false;
@@ -253,16 +250,9 @@ public class GameManager : MonoBehaviour
         rerollRound = false;
 
         if (playerRoundScore > botRoundScore)
-        {
             PlayerWon();
-            
-        }
         else if (botRoundScore > playerRoundScore)
-        {
             BotWon();
-
-
-        }
         else // draw
         {
             if (playerOrigianlRoundScore % 2 == 0)
@@ -279,9 +269,8 @@ public class GameManager : MonoBehaviour
         {
             currentRound++;
             uiManager.SetCurrentRoundText(currentRound.ToString());
-            SetPlayerTurn();
+            SetTurn(true);
         }
-            
     }
 
     void PlayerWon()
